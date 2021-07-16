@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    image: base-sylius:apache
+    env_file: 
+      - .env
+    ports:
+      - "8000:80"
+    volumes:
+      - data:/data
+      - logs:/var/log/artifakt
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: 0
+      APP_DATABASE_HOST: ${ARTIFAKT_MYSQL_HOST}
+      APP_DATABASE_NAME: ${ARTIFAKT_MYSQL_DATABASE_NAME}
+      APP_DATABASE_USER: ${ARTIFAKT_MYSQL_USER}
+      APP_DATABASE_PASSWORD: ${ARTIFAKT_MYSQL_PASSWORD}
+      PHP_CONF_MEMORY_LIMIT: "-1"
+      PHP_CONF_DATE_TIMEZONE: "Europe/Berlin"
+      PHP_CONF_MAX_EXECUTION_TIME: 180
+      PHP_CONF_OPCACHE_VALIDATE_TIMESTAMP: 1
+
+  mysql:
+    image: mysql/mysql-server:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - datadir:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${ARTIFAKT_MYSQL_DATABASE_NAME:-changeme}
+      MYSQL_USER: ${ARTIFAKT_MYSQL_USER:-changeme}
+      MYSQL_PASSWORD: ${ARTIFAKT_MYSQL_PASSWORD:-s3cr3t!}
+      MYSQL_RANDOM_ROOT_PASSWORD: "true"
+
+volumes: 
+  data:
+  datadir:
+  logs:
