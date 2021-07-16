@@ -20,7 +20,7 @@ That's why Artifakt provides sample apps like this one to showcase how to build,
 
 ## Sylius Product Information Management
 
-For complete documentation about the Sylius PIM project, please refer to official [README](./README-upstream.md) file
+For complete documentation about the Sylius project, please refer to official [README](https://github.com/Sylius/Sylius/blob/1.10/README.md) file
 
 ## Pre-requisites
 
