@@ -34,11 +34,12 @@ su www-data -s /bin/bash -c '
 
 su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status'
 # only run install on first deployment, checks if migrations are done or not
+HAS_MIGRATION=99
 su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status | grep "Already at latest version"' || HAS_MIGRATION=$?
 
 echo HAS_MIGRATION=$HAS_MIGRATION
 
-if [ -z "$HAS_MIGRATION" -o " $HAS_MIGRATION " == " 0" ]; then
+if [ $HAS_MIGRATION -ne 0 ]; then
   echo FIRST DEPLOYMENT, RUNNING AUTOMATED INSTALL
   wait-for $APP_DATABASE_HOST:3306 --timeout=180 -- su www-data -s /bin/sh -c '
     set -e
