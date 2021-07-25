@@ -4,11 +4,6 @@ set -e
 
 echo ">>>>>>>>>>>>>> START CUSTOM BUILD SCRIPT <<<<<<<<<<<<<<<<< "
 
-echo "------------------------------------------------------------"
-echo "The following build args are available:"
-env
-echo "------------------------------------------------------------"
-
 # used by entrypoint to init JWT
 apt-get update && \
     apt-get install -y --no-install-recommends acl && \

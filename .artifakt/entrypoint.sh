@@ -14,11 +14,6 @@ export APP_DATABASE_PORT=${ARTIFAKT_MYSQL_PORT:-3306}
 
 export DATABASE_URL=mysql://$APP_DATABASE_USER:$APP_DATABASE_PASSWORD@$APP_DATABASE_HOST:$APP_DATABASE_PORT/$APP_DATABASE_NAME
 
-echo "------------------------------------------------------------"
-echo "The following build args are available:"
-env
-echo "------------------------------------------------------------"
-
 # generate jwt data if not present yet
 su www-data -s /bin/bash -c '
   set -e
