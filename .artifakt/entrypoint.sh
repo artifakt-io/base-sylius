@@ -32,16 +32,18 @@ su www-data -s /bin/bash -c '
   fi
 '
 
+wait-for $APP_DATABASE_HOST:$APP_DATABASE_PORT --timeout=180
+
 su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status'
 # only run install on first deployment, checks if migrations are done or not
-HAS_MIGRATION=99
-su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status | grep "Already at latest version"' || HAS_MIGRATION=$?
+IS_MIGRATED=0
+su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status | grep "Already at latest version"' || IS_MIGRATED=$?
 
-echo HAS_MIGRATION=$HAS_MIGRATION
+echo IS_MIGRATED=$IS_MIGRATED
 
-if [ $HAS_MIGRATION -ne 0 ]; then
+if [ $IS_MIGRATED -ne 0 ]; then
   echo FIRST DEPLOYMENT, RUNNING AUTOMATED INSTALL
-  wait-for $APP_DATABASE_HOST:3306 --timeout=180 -- su www-data -s /bin/sh -c '
+   su www-data -s /bin/sh -c '
     set -e
     rm -rf var/cache/*
     mkdir -p public/media/image
