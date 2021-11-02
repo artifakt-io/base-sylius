@@ -42,6 +42,7 @@ if [ $IS_MIGRATED -ne 0 ]; then
     set -e
     rm -rf var/cache/*
     mkdir -p public/media/image
+    composer require doctrine/dbal:"^2.6"
     bin/console sylius:install -n
     bin/console sylius:fixtures:load -n
     bin/console assets:install --symlink --relative public
