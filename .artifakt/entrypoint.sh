@@ -29,6 +29,18 @@ su www-data -s /bin/bash -c '
 
 wait-for $APP_DATABASE_HOST:$APP_DATABASE_PORT --timeout=180
 
+
+lockdir="/data/docker-entrypoint.mutex"
+while ! mkdir "$lockdir"; do
+    echo 'Can not get lock. Waiting...' >&2
+    sleep 10
+done
+
+trap 'rmdir "$lockdir"; exit' EXIT INT TERM HUP
+
+# etc.
+# no need to rmdir the lock dir at the end
+
 su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status'
 # only run install on first deployment, checks if migrations are done or not
 IS_MIGRATED=0
@@ -51,5 +63,7 @@ if [ $IS_MIGRATED -ne 0 ]; then
 else
   echo MIGRATIONS DETECTED, SKIPPING AUTOMATED INSTALL
 fi
+
+rmdir "$lockdir"
 
 echo ">>>>>>>>>>>>>> END CUSTOM ENTRYPOINT SCRIPT <<<<<<<<<<<<<<<<< "
