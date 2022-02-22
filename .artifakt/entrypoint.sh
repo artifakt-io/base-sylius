@@ -2,6 +2,25 @@
 
 set -e
 
+# source: https://gist.github.com/karlrwjohnson/1921b05c290edb665c238676ef847f3c
+function lock_cmd {
+    LOCK_FILE="$1"; shift
+    LOCK_TIMEOUT="$1"; shift;
+
+    (
+        trap "rm -f $LOCK_FILE" 0
+        flock -x -w $LOCK_TIMEOUT 200
+        RETVAL=$?
+        if [ $RETVAL -ne 0 ]; then
+            echo -e "Failed to aquire lock on $LOCK_FILE within $LOCK_TIMEOUT seconds. Is a similar script hung?"
+            exit $RETVAL
+        fi
+        echo -e "Running command: $@"
+        $@
+    ) 200>"$LOCK_FILE"
+}
+
+
 echo ">>>>>>>>>>>>>> START CUSTOM ENTRYPOINT SCRIPT <<<<<<<<<<<<<<<<< "
 
 # set runtime env. vars on the fly
@@ -29,41 +48,11 @@ su www-data -s /bin/bash -c '
 
 wait-for $APP_DATABASE_HOST:$APP_DATABASE_PORT --timeout=180
 
-
-lockdir="/data/docker-entrypoint.mutex"
-while ! mkdir "$lockdir"; do
-    echo 'Can not get lock. Waiting...' >&2
-    sleep 10
-done
-
-trap 'rmdir "$lockdir"; exit' EXIT INT TERM HUP
-
-# etc.
-# no need to rmdir the lock dir at the end
-
 su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status'
-# only run install on first deployment, checks if migrations are done or not
-IS_MIGRATED=0
-su www-data -s /bin/bash -c 'php ./bin/console doctrine:migrations:status | grep "Already at latest version"' || IS_MIGRATED=$?
 
-echo IS_MIGRATED=$IS_MIGRATED
+lock_file=/data/artifakt-install-lock
+lock_timeout=600
 
-if [ $IS_MIGRATED -ne 0 ]; then
-  echo FIRST DEPLOYMENT, RUNNING AUTOMATED INSTALL
-   su www-data -s /bin/sh -c '
-    set -e
-    rm -rf var/cache/*
-    mkdir -p public/media/image
-    composer require doctrine/dbal:"^2.6"
-    bin/console sylius:install -n
-    bin/console sylius:fixtures:load -n
-    bin/console assets:install --symlink --relative public
-    bin/console cache:clear
-  '
-else
-  echo MIGRATIONS DETECTED, SKIPPING AUTOMATED INSTALL
-fi
-
-rmdir "$lockdir"
+lock_cmd $lock_file $lock_timeout /.artifakt/install.sh
 
 echo ">>>>>>>>>>>>>> END CUSTOM ENTRYPOINT SCRIPT <<<<<<<<<<<<<<<<< "
