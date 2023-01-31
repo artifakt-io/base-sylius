@@ -1,4 +1,4 @@
-FROM registry.artifakt.io/sylius:1.12-apache-php8.1
+FROM registry.artifakt.io/sylius:1.12-apache-php-8.1
 
 ENV APP_DEBUG=0
 ENV APP_ENV=prod
